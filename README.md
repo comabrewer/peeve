@@ -1,38 +1,77 @@
 # peeve
 
-> Script launcher with automatic installation of dependencies
+> My pet peeve: Wrangling with virtual environments for simple scripts.
 
-Imagine you have project with a bunch of Python scripts that require additional packages.
-As a good citizen, you create a virtual environment, install the dependencies,
-always remember to activate the virtual environment and update the dependencies whenever they change.
-But you just want to execute the scripts, right? That's what `peeve` is good for!
-Use `peeve script.py` and it will do all the extra steps in the background for you!
+peeve provides a virtual environment and runs your script in a single command:
 
-Features:
-- Zero configuration.
-- Single file, no dependencies - just drop it wherever you need it.
-- No need to package your project.
-- Parallel Windows / Linux support, e.g. for WSL.
-- Hashing of requirements for quick startup.
+```sh
+peeve script.py
+# or with shorter alias:
+pv script.py
+```
 
-The name `peeve` contains the letters "p" for `python`, `project` and `pip`,
-and "v" for `venv`.
-It also alludes to the annoyance virtual environment management.
-According to Google, a pet peeve is
+In detail, peeve will:
+- Search for a `requirements.txt`
+- Create a virtual environment, if required
+- Update the installed packages, if required
+- Activate the virtual environment, if required
+- Run the script
 
-> something that a particular person finds especially annoying.
+Alternatively, you can add 
+
+```py
+from peeve import bootstrap
+```
+
+before any third-party import and run the script the usual way:
+
+```sh
+python script.py
+```
+
+
+## Motivation
+
+In our team we often provide Python scripts with our internal Git repositories 
+to automate any kind of workflow.
+As soon as the scripts rely on third-party packages, things start to get complicated.
+
+We all know that you shouldn't install Python packages globally.
+However, creating virtual environment, activating it, and keeping the dependencies
+up to date are a few steps too many if you just want to run a script.
+You can easily forget to update the dependencies after a `git pull`, 
+or to activate the virtual environment when you start a new shell session.
+Even worse, the commands for activation depend on your shell and operating system.
+
+While there are excellent tools like pipx, they typically require you to package 
+your scripts.
+Especially for team members who are not Python experts because they develop in
+other languages are have other roles such as testers, this situation is challenging.
+
 
 ## Installation
 
-```sh
-$ pip install peeve
-```
+peeve is available on the Python Package Index:
 
 ```sh
-$ pipx install peeve
+pip install peeve
 ```
+
+Since peeve does not have any third-party dependencies, a global installation
+is probably less harmful than usually.
+Still, you should prefer pipx if you only need the command line usage: 
+
+```sh
+pipx install peeve
+```
+
+Since peeve is a single file with no dependencies, you can easily copy it into
+you project ("vendoring") or use a similar mechanism like Git subtrees or Git submodules.
+
 
 ## Usage
+
+### Command line
 
 Assuming you have a project with the following files:
 
@@ -45,13 +84,19 @@ requirements.txt
 Use `peeve` instead of `python` to run your script:
 
 ```sh
-$ peeve script.py
+peeve script.py
+```
+
+You may also use the shorter `pv` alias:
+
+```sh
+pv script.py
 ```
 
 If the `peeve` command is not accesible, use:
 
 ```sh
-$ python -m peeve script.py
+python -m peeve script.py
 ```
 
 It will:
@@ -61,13 +106,54 @@ It will:
 
 If there is nothing to do, the startup is not much slower than the Python interpreter itself.
 
+
 ### API
 
-Create virtual environment and restart script, if necessary:
+Add a single import line to your script:
 
 ```py
-import peeve; peeve.main()  # noqa
+# standard library imports
+
+from peeve import bootstrap
+
+# third-party imports
 ```
+
+Then you can execute the script directly with the Python interpreter: 
+
+```sh
+python script.py
+```
+
+You may need to replace `python` by the appropriate command on your system.
+In any case, Python must be able to import `peeve`, so you must have it installed
+globally, inside the current virtual environment, or have the `peeve.py` script on
+the Python search path.
+
+### Advanced
+
+TODO:
+- Choose different Python version
+- Compatibility with manualy invocation of venv/pip
+- Active venv / exisiting venv
+
+
+## Features
+
+Implemented:
+- [X] Single file, no external dependencies
+- [X] No configuration required
+- [X] No packaging of scripts required
+- [X] Dual usage: from command line or as import 
+- [X] Dicovery of `requirements.txt` and existing `.venv` in parent directory
+- [X] Hashing of requirements to skip unnecessary upgrade
+- [X] Fast in-process venv activation and script execution
+
+Planned:
+- [ ] Awareness of parallel Python versions and/or operating systems
+- [ ] Support for other interpreter modes (e.g. `-m`, `-c` or interactive)
+- [ ] Configuration of requirements file location and/or venv location
+- [ ] Support for other dependency specification formats
 
 
 ## Alternatives
@@ -87,39 +173,9 @@ commands = python {posargs}
 `peeve` is faster and works without any configuration.
 
 
-## Design
-
-- Two modes of usage: as launcher and as import package
-- As module: `import peeve; peeve.bootstrap()`
-- As console scripts: `peeve script.py`
-  - Works as drop-in replacement for python interpreter
-- Principles:
-  - Single file
-  - No external dependencies
-  - No configuration
-- Assumptions:
-  - Use requirements.txt (can later be extended)
-  - virtual environment at root called `venv`
-  - Allow access to same project with different shells or shared folder from
-- Configuration:
-  - Hierarchy: command line options, environment variables, configuration file
-
-
-## Features
-
-### Planned
-
-- [ ] Multi-homing (multile Python versions and/or operating systems)
-- [ ] Configuration of requirements location and/or venv location
-- [ ] Programmatic usage: nice way for import without function call
-
-
 # TODO
 
 - [ ] Error handling
-- [ ] Make dynamic import 
-- [ ] Make initial commit
-- [ ] Write tests
 - [ ] Set up CI
 - [ ] Write documentation
 - [ ] Make initial release
