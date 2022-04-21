@@ -26,6 +26,8 @@ import sys
 import venv
 from pathlib import Path
 
+__all__ = ["cli", "bootstrap"]
+
 log = logging.getLogger(__name__)
 
 
@@ -52,31 +54,29 @@ def cli():
         log.error("Please specify the path to a valid script.")
         sys.exit(1)
 
-    bootstrap(start_dir)
+    ensure_venv(script_path.parent)
     runpy.run_path(script_path)
 
 
 def __getattr__(name: str) -> None:
-    if name == "auto":
-        api()
+    """Programmatic usage on import.
 
-
-# TODO: choose better function name
-def api():
-    """Programmatic usage by import.
-
-        import peeve
+    Example::
+        from peeve import bootstrap
     """
-    # TODO: maybe set up logging, but disable afterwards?
-    logging.basicConfig(level=logging.DEBUG)
+    if name == "bootstrap":
+        # TODO: maybe set up logging, but disable afterwards?
+        logging.basicConfig(level=logging.DEBUG)
 
-    # TODO: early return if already running peeve?
+        # TODO: early return if already running peeve?
 
-    script_path = get_script_path(sys.argv)
-    bootstrap(start_dir)
+        script_path = get_script_path(sys.argv)
+        return ensure_venv(script_path.parent)
+
+    raise AttributeError(f"Module peeve has no attribute {name}")
 
 
-def bootstrap(start_dir: Path | None = None) -> None:
+def ensure_venv(start_dir: Path | None = None) -> Path | None:
     """Ensure updated virtual environment is active."""
     requirements_file = find_requirements_file(start_dir)
     if not requirements_file:
@@ -98,6 +98,8 @@ def bootstrap(start_dir: Path | None = None) -> None:
 
     if not is_active(venv_dir):
         activate(venv_dir)
+
+    return venv_dir
 
 
 def get_script_path(argv: list[str]) -> Path | None:
@@ -133,7 +135,8 @@ def is_update_required(hash_file: Path, checksum: str) -> bool:
 
 def update_hash(hash_file: Path, checksum: str) -> None:
     """Save current requirements hash in file."""
-    hash_file.write_text(json.dumps({"md5": checksum}))
+    data = {"format": "1.0", "md5": checksum}
+    hash_file.write_text(json.dumps(data))
 
 
 def update_venv(venv_dir: Path, requirements_file: Path) -> None:
