@@ -132,10 +132,39 @@ the Python search path.
 
 ### Advanced
 
-TODO:
-- Choose different Python version
-- Compatibility with manualy invocation of venv/pip
-- Active venv / exisiting venv
+#### Python version
+
+peeve uses the Python interpreter it was invoked with.
+You can combine the Python launcher with peeve to select the desired Python version:
+
+```sh
+py -3.10 -m peeve script.py
+```
+
+Currently, peeve does not check the Python version in any way.
+If you call peeve with a different Pythin version than the one you used to create
+the virtual environment, you may encounter problems.
+In this case, delete the virtual environment and let peeve recreate it.
+
+#### Compatibility with pip and venv
+
+peeve uses pip and venv and is fully compatible to direct usage of those tools.
+This means that peeve can update and activate manually created virtual
+envionments, or that you can manually modify virtual environments created with
+peeve. However, peeve cannot detect such changes since they pypass the
+hashing mechanism.
+
+peeve makes to assumptions about your project:
+1. you have a `requirements.txt` at the root of the project
+2. you want to use a virtual environment `.venv` at the root of the project
+
+Other requirement files or virtual environments are ignored.
+
+#### Active virtual environments
+
+You may use peeve from within an active virtual environment.
+If the active environment is the desired `.venv` one, peeve will continue to use it.
+If it is a different one, peeve will switch to `.venv` automatically.
 
 
 ## Features
