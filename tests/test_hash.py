@@ -1,10 +1,9 @@
 """Test requirements hashing."""
 
-# same file: same hashes
-# differnt contents: different hashes
-
-# is required:
 import pytest
+
+import peeve
+
 
 @pytest.fixture
 def some_requirements(tmp_path):

@@ -4,25 +4,15 @@ import subprocess
 import pytest
 
 
-@pytest.fixture(scope="session")
-def script(tmp_path):
-    requirements = tmp_path / "requirements.txt"
-    requirements.write_text("abomination")
-    script = tmp_path / "script.py"
-    script.write_text("import abomination")
-    return str(script)
-
-
 @pytest.mark.parametrize("commands", [
     pytest.param(["python", "peeve.py"], id="script"),
     pytest.param(["python", "-m", "peeve"], id="module"),
     pytest.param(["peeve"], id="cli"),
     pytest.param(["pv"], id="short_cli"),
-    [""],
 ])
-def test_invocation(commands, script):
+def test_invocation(commands, script_path):
     """Different invocation modes work."""
-    commands += [script]
+    commands += [str(script_path)]
     subprocess.run(commands, check=True)
 
 
@@ -39,7 +29,7 @@ def test_non_existing_script():
 
 
 @pytest.mark.xfail(reason="Module execution not implemented yet.")
-def test_module_execution(script):
+def test_module_execution(script_path):
     """Modules or packages can be executed."""
-    commands = ["peeve", "-m", script.name]
+    commands = ["peeve", "-m", script_path.name]
     subprocess.run(commands, check=True, cwd=script.parent)
