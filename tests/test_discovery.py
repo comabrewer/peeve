@@ -6,12 +6,14 @@ import peeve
 
 @pytest.fixture(scope="session")
 def other_path(tmp_path_factory):
+    """Path to some directory outside of project."""
     path = tmp_path_factory.mktemp("other")
     return path
 
 
 @pytest.fixture
 def nested_script_path(project_path):
+    """Path to script in child directory."""
     script_path = project_path / "scripts" / "script.py"
     script_path.parent.mkdir()
     script_path.touch()

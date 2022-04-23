@@ -32,4 +32,4 @@ def test_non_existing_script():
 def test_module_execution(script_path):
     """Modules or packages can be executed."""
     commands = ["peeve", "-m", script_path.name]
-    subprocess.run(commands, check=True, cwd=script.parent)
+    subprocess.run(commands, check=True, cwd=script_path.parent)

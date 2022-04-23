@@ -6,7 +6,9 @@ arguments to the python interpreter of the virtual environment.
 
 Assumptions:
 - There is requirements.txt at the root of the project.
-- The current working directory is at the root or inside the project.
+- The virtual environment shall be called ".venv" and reside next to the
+  requirements.txt.
+- The script to execute is at the root or inside the project.
 - We want to use the same Python interpreter that is used for executing
   peeve (this script) itself.
 - The first command line argument is the path to the script to execute.
@@ -24,11 +26,12 @@ import subprocess
 import site
 import sys
 import venv
+from contextlib import contextmanager
 from pathlib import Path
 
-__all__ = ["cli", "bootstrap"]
+__all__ = ["cli", "bootstrap"]  # noqa: F822 # pylint: disable=undefined-all-variable
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("peeve")
 
 
 def cli():
@@ -44,44 +47,61 @@ def cli():
     interactive usage, module invocation, or code execution (-c),
     are currently not supported.
     """
-    logging.basicConfig(level=logging.INFO)
+    with ensure_logging():
+        # Remove peeve itself from argument list
+        sys.argv = sys.argv[1:]
 
-    # Remove peeve itself from argument list
-    sys.argv = sys.argv[1:]
+        script_path = get_script_path(sys.argv)
+        if script_path is None:
+            log.error("Please specify the path to a valid script.")
+            sys.exit(1)
 
-    script_path = get_script_path(sys.argv)
-    if script_path is None:
-        log.error("Please specify the path to a valid script.")
-        sys.exit(1)
+        ensure_venv(script_path.parent)
 
-    ensure_venv(script_path.parent)
-    runpy.run_path(script_path)
+    run_script(script_path)
 
 
-def __getattr__(name: str) -> None:
+def __getattr__(name: str) -> Path | None:
     """Programmatic usage on import.
 
     Example::
         from peeve import bootstrap
     """
     if name == "bootstrap":
-        # TODO: maybe set up logging, but disable afterwards?
-        logging.basicConfig(level=logging.DEBUG)
-
-        # TODO: early return if already running peeve?
-
-        script_path = get_script_path(sys.argv)
-        return ensure_venv(script_path.parent)
+        # TODO: return early if already ensured venv in same process?
+        with ensure_logging():
+            script_path = get_script_path(sys.argv)
+            if not script_path:
+                log.error("Could not find location of script")
+                sys.exit(1)
+            return ensure_venv(script_path.parent)
 
     raise AttributeError(f"Module peeve has no attribute {name}")
 
 
+@contextmanager
+def ensure_logging(level: int = logging.INFO):
+    """Ensure logging handler and restore configuration eventually."""
+    root = logging.getLogger()
+    num_orig_handlers = len(root.handlers)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)-8s [%(name)s] %(message)s"
+    )
+    try:
+        yield
+    finally:
+        for handler in root.handlers[num_orig_handlers:]:
+            root.removeHandler(handler)
+
+
 def ensure_venv(start_dir: Path | None = None) -> Path | None:
     """Ensure updated virtual environment is active."""
+    start_dir = start_dir or Path.cwd()
     requirements_file = find_requirements_file(start_dir)
     if not requirements_file:
         log.info("No requirements file found, not using venv.")
-        return
+        return None
 
     project_dir = requirements_file.parent
     venv_dir = project_dir / ".venv"
@@ -102,6 +122,11 @@ def ensure_venv(start_dir: Path | None = None) -> Path | None:
     return venv_dir
 
 
+def run_script(path: Path) -> None:
+    """Run script."""
+    runpy.run_path(str(path))
+
+
 def get_script_path(argv: list[str]) -> Path | None:
     """Get path to Python script from argument list."""
     if len(argv) < 1:
@@ -109,7 +134,7 @@ def get_script_path(argv: list[str]) -> Path | None:
         return None
     script_path = Path(argv[0])
     if not script_path.is_file() or not script_path.suffix == ".py":
-        log.error("First argument is not a valid file.")
+        log.error(f"First argument '{script_path}' is not a valid file.")
         return None
     return script_path.resolve()
 
@@ -146,14 +171,14 @@ def update_venv(venv_dir: Path, requirements_file: Path) -> None:
     """
     python = venv_dir / get_bin_dir_name() / "python"
 
-    log.info(f"Updating pip...")
+    log.info("Updating pip...")
     pip_install(python, "pip")
 
     log.info(f"Installing dependencies from {requirements_file}...")
     pip_install(python, "-r", str(requirements_file))
 
 
-def pip_install(python: Path, *args: list[str]) -> None:
+def pip_install(python: Path, *args: str) -> None:
     """Install packages with Pip.
 
     Args:
@@ -222,7 +247,7 @@ def activate(venv_dir: Path) -> None:
     site.addsitedir(str(lib_dir))
     site.addsitedir(str(lib_dir / "site-packages"))
 
-    sys.real_prefix = sys.prefix
+    sys.base_prefix = sys.prefix
     sys.prefix = str(venv_dir)
 
 

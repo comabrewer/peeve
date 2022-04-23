@@ -204,7 +204,6 @@ commands = python {posargs}
 
 # TODO
 
-- [ ] Error handling
-- [ ] Set up CI
-- [ ] Write documentation
-- [ ] Make initial release
+- [ ] Generate code coverage report 
+- [ ] Generate HTML documentation
+- [ ] Setup CI

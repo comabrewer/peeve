@@ -1,5 +1,4 @@
 """Test virtual environment management."""
-import pytest
 import subprocess
 import sys
 
