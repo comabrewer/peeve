@@ -6,7 +6,11 @@ peeve provides a virtual environment and runs your script in a single command:
 
 ```sh
 peeve script.py
-# or with shorter alias:
+```
+
+or with the shorter alias:
+
+```sh
 pv script.py
 ```
 
