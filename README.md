@@ -206,8 +206,22 @@ commands = python {posargs}
 `peeve` is faster and works without any configuration.
 
 
-# TODO
+## TODO
 
 - [ ] Generate code coverage report 
 - [ ] Generate HTML documentation
 - [ ] Setup CI
+
+
+## Changelog
+
+# v0.2.0 (2022-04-23)
+
+- Fix broken packaging
+- Fix Linux/MacOS support
+- Fix Python 3.7 support
+
+# v0.1.0 (2022-04-23)
+
+- Initial release
+
