@@ -215,13 +215,13 @@ commands = python {posargs}
 
 ## Changelog
 
-# v0.2.0 (2022-04-23)
+### v0.2.0 (2022-04-23)
 
 - Fix broken packaging
 - Fix Linux/MacOS support
 - Fix Python 3.7 support
 
-# v0.1.0 (2022-04-23)
+### v0.1.0 (2022-04-23)
 
 - Initial release
 

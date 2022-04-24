@@ -6,6 +6,7 @@ import pytest
 
 import peeve
 
+
 @pytest.mark.parametrize("commands", [
     pytest.param([sys.executable, peeve.__file__], id="script"),
     pytest.param([sys.executable, "-m", "peeve"], id="module"),
