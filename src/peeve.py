@@ -266,7 +266,8 @@ def get_bin_dir_name() -> str:
 
 def get_lib_dir_name() -> str:
     """Get path to director with binaries."""
-    return "Lib" if platform.system() == "Windows" else "lib"
+    major, minor, *_ = sys.version_info
+    return "Lib" if platform.system() == "Windows" else f"lib/python{major}.{minor}"
 
 
 if __name__ == "__main__":
