@@ -1,12 +1,14 @@
 """Test command line interface."""
 import subprocess
+import sys
 
 import pytest
 
+import peeve
 
 @pytest.mark.parametrize("commands", [
-    pytest.param(["python", "peeve.py"], id="script"),
-    pytest.param(["python", "-m", "peeve"], id="module"),
+    pytest.param([sys.executable, peeve.__file__], id="script"),
+    pytest.param([sys.executable, "-m", "peeve"], id="module"),
     pytest.param(["peeve"], id="cli"),
     pytest.param(["pv"], id="short_cli"),
 ])

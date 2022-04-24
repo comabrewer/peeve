@@ -17,7 +17,7 @@ def test_update_venv(venv_path, requirements_path):
     peeve.create_venv(venv_path)
     peeve.update_venv(venv_path, requirements_path)
     site_packages = venv_path / peeve.get_lib_dir_name() / "site-packages"
-    assert "abomination.py" in site_packages.iterdir()
+    assert (site_packages / "abomination.py").exists()
 
 
 def test_is_active(venv_path):
