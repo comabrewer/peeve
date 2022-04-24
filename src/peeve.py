@@ -112,7 +112,7 @@ def ensure_venv(start_dir: Path | None = None) -> Path | None:
 
     checksum = hash_requirements(requirements_file)
     if is_update_required(hash_file, checksum):
-        hash_file.unlink(missing_ok=True)
+        remove_hash(hash_file)
         update_venv(venv_dir, requirements_file)
         update_hash(hash_file, checksum)
 
@@ -156,6 +156,14 @@ def is_update_required(hash_file: Path, checksum: str) -> bool:
         return True
     data = json.loads(hash_file.read_text())
     return data.get("md5") != checksum
+
+
+def remove_hash(hash_file: Path) -> None:
+    """Remove hash file."""
+    try:
+        hash_file.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def update_hash(hash_file: Path, checksum: str) -> None:
