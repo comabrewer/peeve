@@ -260,12 +260,12 @@ def activate(venv_dir: Path) -> None:
 
 
 def get_bin_dir_name() -> str:
-    """Get path to director with binaries."""
+    """Get path to directory with binaries."""
     return "Scripts" if platform.system() == "Windows" else "bin"
 
 
 def get_lib_dir_name() -> str:
-    """Get path to director with binaries."""
+    """Get path to directory with libraries."""
     major, minor, *_ = sys.version_info
     return "Lib" if platform.system() == "Windows" else f"lib/python{major}.{minor}"
 
